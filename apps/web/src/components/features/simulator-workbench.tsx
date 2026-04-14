@@ -1,14 +1,6 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  BotMessageSquare,
-  FileStack,
-  Gavel,
-  Scale,
-  ShieldCheck,
-} from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
@@ -18,10 +10,7 @@ import {
   fetchRunSummary,
   uploadDocument,
 } from "@/lib/api";
-import {
-  demoDefaultPersonaSlug,
-  demoPersonas,
-} from "@/lib/demo-data";
+import { demoDefaultPersonaSlug, demoPersonas } from "@/lib/demo-data";
 import { runDemo, type DemoRunBundle } from "@/lib/demo-engine";
 import { useRunPolling } from "@/lib/hooks/use-run-polling";
 import { formatDifficulty, frictionVariant } from "@/lib/presenters";
@@ -42,12 +31,8 @@ type EvidenceDraft = {
   uploadedVersionId: string | null;
 };
 
-
 export function SimulatorWorkbench() {
-  const personasQuery = useQuery({
-    queryKey: ["personas"],
-    queryFn: fetchPersonas,
-  });
+  const personasQuery = useQuery({ queryKey: ["personas"], queryFn: fetchPersonas });
 
   const [contractName, setContractName] = useState("Cloud Platform MSA");
   const [originalText, setOriginalText] = useState("");
@@ -59,9 +44,9 @@ export function SimulatorWorkbench() {
   const [originalUpload, setOriginalUpload] = useState<UploadDocumentResponse | null>(null);
   const [revisedUpload, setRevisedUpload] = useState<UploadDocumentResponse | null>(null);
   const [evidenceDrafts, setEvidenceDrafts] = useState<EvidenceDraft[]>([
-    { label: "Customer Playbook", type: "playbook", text: "", file: null, uploadedVersionId: null },
-    { label: "Vendor Precedent", type: "precedent", text: "", file: null, uploadedVersionId: null },
-    { label: "Fallback Clauses", type: "fallback", text: "", file: null, uploadedVersionId: null },
+    { label: "Customer Playbook", type: "playbook",  text: "", file: null, uploadedVersionId: null },
+    { label: "Vendor Precedent",  type: "precedent", text: "", file: null, uploadedVersionId: null },
+    { label: "Fallback Clauses",  type: "fallback",  text: "", file: null, uploadedVersionId: null },
   ]);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [demoBundle, setDemoBundle] = useState<DemoRunBundle | null>(null);
@@ -80,32 +65,24 @@ export function SimulatorWorkbench() {
 
   const availablePersonas = personasQuery.data?.length ? personasQuery.data : demoPersonas;
   const selectedPersona = useMemo(
-    () => availablePersonas.find((persona) => persona.id === selectedPersonaId) ?? null,
+    () => availablePersonas.find((p) => p.id === selectedPersonaId) ?? null,
     [availablePersonas, selectedPersonaId],
   );
-  const runStatusData = demoBundle?.runStatus ?? runStatusQuery.data ?? null;
   const runSummaryData = demoBundle?.runSummary ?? runSummaryQuery.data ?? null;
   const reviewResults = useMemo(
     () => demoBundle?.clauseResults.results ?? clauseResultsQuery.data?.results ?? [],
     [clauseResultsQuery.data, demoBundle],
   );
   const selectedResult = useMemo(
-    () => reviewResults.find((result) => result.clause_change.id === selectedClauseId) ?? reviewResults[0] ?? null,
+    () => reviewResults.find((r) => r.clause_change.id === selectedClauseId) ?? reviewResults[0] ?? null,
     [reviewResults, selectedClauseId],
   );
 
-  const uploadMutation = useMutation({
-    mutationFn: uploadDocument,
-  });
-
+  const uploadMutation    = useMutation({ mutationFn: uploadDocument });
   const createRunMutation = useMutation({
     mutationFn: createRun,
-    onSuccess: (result) => {
-      setDemoBundle(null);
-      setActiveRunId(result.run.id);
-    },
+    onSuccess: (result) => { setDemoBundle(null); setActiveRunId(result.run.id); },
   });
-
   const demoRunMutation = useMutation({
     mutationFn: () => runDemo({ personaSlug: selectedPersona?.slug ?? demoDefaultPersonaSlug }),
     onSuccess: (result) => {
@@ -120,27 +97,9 @@ export function SimulatorWorkbench() {
       setOriginalUpload(null);
       setRevisedUpload(null);
       setEvidenceDrafts([
-        {
-          label: "Customer Playbook",
-          type: "playbook",
-          text: result.evidenceDocuments[0]?.text ?? "",
-          file: null,
-          uploadedVersionId: result.evidenceDocuments[0]?.uploadedVersionId ?? null,
-        },
-        {
-          label: "Vendor Precedent",
-          type: "precedent",
-          text: result.evidenceDocuments[1]?.text ?? "",
-          file: null,
-          uploadedVersionId: result.evidenceDocuments[1]?.uploadedVersionId ?? null,
-        },
-        {
-          label: "Fallback Clauses",
-          type: "fallback",
-          text: result.evidenceDocuments[2]?.text ?? "",
-          file: null,
-          uploadedVersionId: result.evidenceDocuments[2]?.uploadedVersionId ?? null,
-        },
+        { label: "Customer Playbook", type: "playbook",  text: result.evidenceDocuments[0]?.text ?? "", file: null, uploadedVersionId: result.evidenceDocuments[0]?.uploadedVersionId ?? null },
+        { label: "Vendor Precedent",  type: "precedent", text: result.evidenceDocuments[1]?.text ?? "", file: null, uploadedVersionId: result.evidenceDocuments[1]?.uploadedVersionId ?? null },
+        { label: "Fallback Clauses",  type: "fallback",  text: result.evidenceDocuments[2]?.text ?? "", file: null, uploadedVersionId: result.evidenceDocuments[2]?.uploadedVersionId ?? null },
       ]);
     },
   });
@@ -150,789 +109,387 @@ export function SimulatorWorkbench() {
     (createRunMutation.error as Error | null)?.message ??
     (demoRunMutation.error as Error | null)?.message ??
     (runStatusQuery.error as Error | null)?.message ??
-    (runSummaryQuery.error as Error | null)?.message ??
-    (clauseResultsQuery.error as Error | null)?.message ??
     null;
-  const indexedEvidenceCount = evidenceDrafts.filter((item) => item.uploadedVersionId).length;
-  const hasMatterLoaded = Boolean(demoBundle) || Boolean(originalUpload && revisedUpload);
-  const currentStage = runStatusData?.run.stage ?? "queued";
 
   useEffect(() => {
-    if (!reviewResults.length) {
-      setSelectedClauseId(null);
-      return;
-    }
-    if (!selectedClauseId || !reviewResults.some((result) => result.clause_change.id === selectedClauseId)) {
+    if (!reviewResults.length) { setSelectedClauseId(null); return; }
+    if (!selectedClauseId || !reviewResults.some((r) => r.clause_change.id === selectedClauseId)) {
       setSelectedClauseId(reviewResults[0].clause_change.id);
     }
   }, [reviewResults, selectedClauseId]);
 
   async function uploadContractsAndEvidence() {
     setDemoBundle(null);
-    const original = await uploadMutation.mutateAsync({
-      path: "/api/documents/original",
-      name: `${contractName} Original`,
-      textContent: originalText,
-      file: originalFile,
-    });
-    const revised = await uploadMutation.mutateAsync({
-      path: "/api/documents/revised",
-      name: `${contractName} Revised`,
-      textContent: revisedText,
-      file: revisedFile,
-    });
-
-    const nextEvidenceDrafts = [...evidenceDrafts];
-    for (let index = 0; index < nextEvidenceDrafts.length; index += 1) {
-      const draft = nextEvidenceDrafts[index];
-      if (!draft.text.trim() && !draft.file) continue;
-      const uploaded = await uploadMutation.mutateAsync({
-        path: "/api/documents/evidence",
-        name: draft.label,
-        textContent: draft.text,
-        evidenceType: draft.type,
-        file: draft.file,
-      });
-      nextEvidenceDrafts[index] = {
-        ...draft,
-        uploadedVersionId: uploaded.version.id,
-      };
+    const original = await uploadMutation.mutateAsync({ path: "/api/documents/original", name: `${contractName} Original`, textContent: originalText, file: originalFile });
+    const revised  = await uploadMutation.mutateAsync({ path: "/api/documents/revised",  name: `${contractName} Revised`,  textContent: revisedText,  file: revisedFile  });
+    const next = [...evidenceDrafts];
+    for (let i = 0; i < next.length; i++) {
+      const d = next[i];
+      if (!d.text.trim() && !d.file) continue;
+      const up = await uploadMutation.mutateAsync({ path: "/api/documents/evidence", name: d.label, textContent: d.text, evidenceType: d.type, file: d.file });
+      next[i] = { ...d, uploadedVersionId: up.version.id };
     }
-
-    setEvidenceDrafts(nextEvidenceDrafts);
+    setEvidenceDrafts(next);
     setOriginalUpload(original);
     setRevisedUpload(revised);
   }
 
   async function runAnalysis() {
     if (!selectedPersonaId || !originalUpload || !revisedUpload) return;
-    setDemoBundle(null);
-    setActiveRunId(null);
-    setSelectedClauseId(null);
+    setDemoBundle(null); setActiveRunId(null); setSelectedClauseId(null);
     await createRunMutation.mutateAsync({
       original_document_version_id: originalUpload.version.id,
-      revised_document_version_id: revisedUpload.version.id,
+      revised_document_version_id:  revisedUpload.version.id,
       persona_id: selectedPersonaId,
-      evidence_document_version_ids: evidenceDrafts
-        .map((draft) => draft.uploadedVersionId)
-        .filter((value): value is string => Boolean(value)),
+      evidence_document_version_ids: evidenceDrafts.map((d) => d.uploadedVersionId).filter((v): v is string => Boolean(v)),
       run_async: false,
     });
   }
 
   async function runDemoFlow() {
-    setActiveRunId(null);
-    setSelectedClauseId(null);
+    setActiveRunId(null); setSelectedClauseId(null);
     await demoRunMutation.mutateAsync();
   }
 
+  const overview = runSummaryData?.overview;
+
   return (
-    <main className="app-shell mx-auto flex min-h-screen max-w-[1680px] flex-col gap-7 px-4 py-6 md:px-6 xl:px-8 xl:py-9">
-      <header className="hero-panel rounded-[32px] border border-border/90 px-6 py-6 shadow-panel md:px-8 md:py-8 xl:px-10 xl:py-9">
-        <div className="flex flex-col gap-9 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-4xl space-y-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="border-border/80 bg-card/60 text-foreground" variant="neutral">
-                Opposing Counsel Simulator
-              </Badge>
-              <Badge className="border-emerald-400/20 bg-emerald-500/12 text-emerald-100" variant="low">
-                Demo-ready workflow
-              </Badge>
-            </div>
-            <div className="space-y-4">
-              <p className="max-w-3xl text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                Clause-level negotiation review for product, legal, and revenue teams
-              </p>
-              <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] text-foreground md:text-5xl">
-                Negotiation review built as a clause engine, not a chatbot.
-              </h1>
-              <p className="max-w-3xl text-base leading-8 text-muted-foreground">
-                Upload contract versions, ground redlines in playbooks and precedent, simulate a
-                structured opposing-counsel response, and review the output in a high-trust legal-tech
-                console.
-              </p>
-            </div>
-          </div>
+    <main className="mx-auto max-w-[1680px] px-4 py-8 md:px-8">
 
-          <div className="flex w-full flex-col gap-4 xl:max-w-[430px]">
-            <Card tone="ghost" className="rounded-[26px] bg-background/24 p-6 backdrop-blur-sm">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Quick Start
-              </p>
-              <p className="mt-3 text-sm leading-7 text-foreground">
-                Run a complete bundled negotiation scenario with realistic contracts, evidence, and clause-by-clause output.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Button onClick={runDemoFlow} disabled={demoRunMutation.isPending}>
-                  {demoRunMutation.isPending ? "Running demo..." : "Run Demo"}
-                </Button>
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <QuickStat label="Workflow" value="Clause-by-clause" />
-                <QuickStat label="Mode" value="No backend required" />
-              </div>
-            </Card>
-          </div>
+      {/* Header */}
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Opposing Counsel Simulator</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Clause-level contract negotiation review. No backend required for demo.
+          </p>
         </div>
-
+        <Button onClick={runDemoFlow} disabled={demoRunMutation.isPending}>
+          {demoRunMutation.isPending ? "Running..." : "Run Demo"}
+        </Button>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          icon={FileStack}
-          label="Changed Clauses"
-          value={runSummaryData?.overview.total_changed_clauses ?? "–"}
-          supporting="Clauses currently in scope"
-        />
-        <MetricCard
-          icon={AlertTriangle}
-          label="Likely Pushback"
-          value={runSummaryData?.overview.likely_pushback_count ?? "–"}
-          supporting="Counterparty objections expected"
-        />
-        <MetricCard
-          icon={Gavel}
-          label="High Friction"
-          value={runSummaryData?.overview.high_friction_clauses ?? "–"}
-          supporting="Clauses likely to stall paper"
-        />
-        <MetricCard
-          icon={Scale}
-          label="Difficulty"
-          value={formatDifficulty(runSummaryData?.overview.overall_negotiation_difficulty)}
-          supporting="Estimated negotiation complexity"
-        />
-      </section>
+      {/* Metrics */}
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Metric label="Changed clauses"  value={overview?.total_changed_clauses  ?? "–"} />
+        <Metric label="Likely pushback"  value={overview?.likely_pushback_count  ?? "–"} />
+        <Metric label="High friction"    value={overview?.high_friction_clauses  ?? "–"} />
+        <Metric label="Difficulty"       value={formatDifficulty(overview?.overall_negotiation_difficulty)} />
+      </div>
 
-      <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
-        <Card className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]" padding="lg">
-          <div className="space-y-5">
-            <SectionHeader
-              eyebrow="Matter Intake"
-              title="Contract versions"
-              description="Upload or paste the original and revised agreements before launching analysis."
-            />
+      {/* Main */}
+      <div className="grid gap-5 xl:grid-cols-[340px_1fr]">
 
+        {/* ── Setup panel ── */}
+        <Card padding="lg" className="space-y-6">
+
+          <Section label="Contracts">
             <div className="space-y-2">
-              <FieldLabel htmlFor="contract-name">Matter name</FieldLabel>
-              <Input
-                id="contract-name"
-                value={contractName}
-                onChange={(event) => setContractName(event.target.value)}
-                placeholder="Cloud Platform MSA"
+              <Label htmlFor="contract-name">Matter name</Label>
+              <Input id="contract-name" value={contractName} onChange={(e) => setContractName(e.target.value)} placeholder="Cloud Platform MSA" />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <ContractInput
+                label="Original" badge={<Badge variant="neutral">Baseline</Badge>}
+                file={originalFile} onFile={setOriginalFile}
+                text={originalText} onText={setOriginalText}
+                placeholder="Paste original contract text."
+              />
+              <ContractInput
+                label="Revised" badge={<Badge variant="decision">Redline</Badge>}
+                file={revisedFile} onFile={setRevisedFile}
+                text={revisedText} onText={setRevisedText}
+                placeholder="Paste revised contract text."
               />
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-2">
-              <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <FieldLabel>Original contract</FieldLabel>
-                    <Badge variant="neutral">Baseline</Badge>
-                  </div>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Baseline version used to trace clause deltas and issue direction.
-                  </p>
-                </div>
-                <UploadControl
-                  label="Source document"
-                  helper="PDF, DOCX, or TXT"
-                  fileName={originalFile?.name ?? null}
-                >
-                  <Input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    onChange={(event) => setOriginalFile(event.target.files?.[0] ?? null)}
-                  />
-                </UploadControl>
-                <Textarea
-                  className="min-h-60"
-                  value={originalText}
-                  onChange={(event) => setOriginalText(event.target.value)}
-                  placeholder="Paste the original agreement text or upload a document."
-                />
-              </Card>
+            <Button
+              onClick={uploadContractsAndEvidence}
+              disabled={((!originalText.trim() && !originalFile) || (!revisedText.trim() && !revisedFile)) || uploadMutation.isPending}
+            >
+              {uploadMutation.isPending ? "Uploading..." : "Upload contracts"}
+            </Button>
+          </Section>
 
-              <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <FieldLabel>Revised contract</FieldLabel>
-                    <Badge variant="decision">Redline</Badge>
-                  </div>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Counterparty edits, redlines, or revised text that should be analyzed clause by clause.
-                  </p>
-                </div>
-                <UploadControl
-                  label="Source document"
-                  helper="PDF, DOCX, or TXT"
-                  fileName={revisedFile?.name ?? null}
-                >
-                  <Input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    onChange={(event) => setRevisedFile(event.target.files?.[0] ?? null)}
-                  />
-                </UploadControl>
-                <Textarea
-                  className="min-h-60"
-                  value={revisedText}
-                  onChange={(event) => setRevisedText(event.target.value)}
-                  placeholder="Paste the revised agreement text or upload a document."
-                />
-              </Card>
-            </div>
+          <div className="border-t border-border/50" />
 
-            <div className="flex flex-wrap gap-3 pt-1">
-              <Button
-                onClick={uploadContractsAndEvidence}
-                disabled={
-                  ((!originalText.trim() && !originalFile) || (!revisedText.trim() && !revisedFile)) ||
-                  uploadMutation.isPending
-                }
-              >
-                {uploadMutation.isPending ? "Uploading matter..." : "Upload matter set"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <SectionHeader
-              eyebrow="Evidence Library"
-              title="Playbooks and fallbacks"
-              description="Attach the internal guidance that should inform retrieval and counterproposal strategy."
-            />
-
-            {evidenceDrafts.map((draft, index) => (
-              <Card key={draft.type} tone="muted" className="space-y-4 rounded-[22px] p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{draft.label}</p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      {draft.type === "playbook" &&
-                        "Preferred fallback language and negotiation guardrails for customer-side review."}
-                      {draft.type === "precedent" &&
-                        "Comparable market language or prior paper that supports the negotiating position."}
-                      {draft.type === "fallback" &&
-                        "Approved fallback language to ground counterproposal generation."}
-                    </p>
-                  </div>
-                  <Badge variant={draft.uploadedVersionId ? "low" : "neutral"}>
+          <Section label="Evidence">
+            <p className="text-sm text-muted-foreground">Optional — paste playbook, precedent, or fallback clauses to ground retrieval.</p>
+            {evidenceDrafts.map((draft, i) => (
+              <div key={draft.type} className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label>{draft.label}</Label>
+                  <Badge variant={draft.uploadedVersionId ? "low" : "neutral"} className="text-xs">
                     {draft.uploadedVersionId ? "Indexed" : "Optional"}
                   </Badge>
                 </div>
-
-                <UploadControl
-                  label="Supporting document"
-                  helper="Optional PDF, DOCX, or TXT"
-                  fileName={draft.file?.name ?? null}
-                >
-                  <Input
-                    type="file"
-                    accept=".txt,.docx,.pdf"
-                    onChange={(event) =>
-                      setEvidenceDrafts((current) =>
-                        current.map((item, itemIndex) =>
-                          itemIndex === index
-                            ? { ...item, file: event.target.files?.[0] ?? null, uploadedVersionId: null }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
-                </UploadControl>
                 <Textarea
-                  className="min-h-32"
+                  className="min-h-20 text-xs"
                   value={draft.text}
-                  onChange={(event) =>
-                    setEvidenceDrafts((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index
-                          ? { ...item, text: event.target.value, uploadedVersionId: null }
-                          : item,
-                      ),
-                    )
-                  }
-                  placeholder={`Paste ${draft.label.toLowerCase()} guidance.`}
+                  onChange={(e) => setEvidenceDrafts((cur) => cur.map((item, j) => j === i ? { ...item, text: e.target.value, uploadedVersionId: null } : item))}
+                  placeholder={`Paste ${draft.label.toLowerCase()}.`}
                 />
-              </Card>
+              </div>
             ))}
-          </div>
-        </Card>
+          </Section>
 
-        <Card className="space-y-5" padding="lg">
-          <SectionHeader
-            eyebrow="Run Control"
-            title="Counsel policy and launch"
-            description="Select the opposing-counsel posture and start a deterministic clause-by-clause review."
-          />
+          <div className="border-t border-border/50" />
 
-          <div className="space-y-2">
-            <FieldLabel htmlFor="persona-select">Opposing-counsel persona</FieldLabel>
-            <Select
-              id="persona-select"
-              value={selectedPersonaId}
-              onChange={(event) => setSelectedPersonaId(event.target.value)}
-            >
-              <option value="">Select an opposing-counsel persona</option>
-              {availablePersonas.map((persona) => (
-                <option key={persona.id} value={persona.id}>
-                  {persona.name}
-                </option>
-              ))}
+          <Section label="Counsel persona">
+            <Select value={selectedPersonaId} onChange={(e) => setSelectedPersonaId(e.target.value)}>
+              <option value="">Select a persona</option>
+              {availablePersonas.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </Select>
-          </div>
 
-          {selectedPersona ? (
-            <Card tone="muted" className="space-y-5 rounded-[22px] p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-foreground">{selectedPersona.name}</p>
-                  <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                    {selectedPersona.description}
-                  </p>
+            {selectedPersona && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">{selectedPersona.description}</p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span>Leverage {selectedPersona.leverage}/5</span>
+                  <span>·</span>
+                  <span>Strictness {selectedPersona.liability_strictness}/5</span>
+                  <span>·</span>
+                  <span>Speed {selectedPersona.speed_priority}/5</span>
                 </div>
-                <Badge variant="decision">{selectedPersona.tone}</Badge>
               </div>
-              <div className="space-y-3">
-                <PersonaScale label="Risk tolerance" value={selectedPersona.risk_tolerance} />
-                <PersonaScale label="Leverage" value={selectedPersona.leverage} />
-                <PersonaScale label="Speed priority" value={selectedPersona.speed_priority} />
-                <PersonaScale label="Liability strictness" value={selectedPersona.liability_strictness} />
-              </div>
-            </Card>
-          ) : (
-            <EmptyState text="Choose a persona to shape the simulated negotiating posture." />
-          )}
+            )}
 
-          <div className="space-y-3">
-            <Button
-              onClick={runAnalysis}
-              disabled={!selectedPersonaId || !originalUpload || !revisedUpload || createRunMutation.isPending}
-              className="w-full"
-            >
-              {createRunMutation.isPending ? "Running manual analysis..." : "Run manual analysis"}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={runDemoFlow}
-              disabled={demoRunMutation.isPending}
-              className="w-full"
-            >
-              {demoRunMutation.isPending ? "Running demo..." : "Run Demo"}
-            </Button>
-          </div>
-
-          {uiError ? <StatusPanel tone="error" text={uiError} /> : null}
-          {!uiError && demoBundle?.message ? <StatusPanel tone="success" text={demoBundle.message} /> : null}
-          {!uiError && runStatusData?.run.error_message ? (
-            <StatusPanel tone="error" text={runStatusData.run.error_message} />
-          ) : null}
-
-          <Card tone="muted" className="space-y-3 rounded-[22px] p-5">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Matter Status
-            </p>
-            <div className="space-y-3">
-              <SummaryRow label="Matter loaded" value={hasMatterLoaded ? "Ready" : "Pending"} />
-              <SummaryRow label="Evidence indexed" value={String(indexedEvidenceCount)} />
-              <SummaryRow label="Run stage" value={currentStage} />
-              <SummaryRow label="Run status" value={runStatusData?.run.status ?? "Idle"} />
-            </div>
-          </Card>
-
-          <Card tone="ghost" className="rounded-[22px] bg-background/18 p-5">
-            <p className="text-sm leading-7 text-muted-foreground">
-              Outputs are framed as negotiation simulation for a product prototype and should not be treated
-              as legal advice.
-            </p>
-          </Card>
-        </Card>
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[0.82fr_1.18fr]">
-        <Card className="space-y-4" padding="lg">
-          <SectionHeader
-            eyebrow="Review Queue"
-            title="Changed clauses"
-            description="Prioritized clause changes with friction and issue tagging."
-          />
-
-          {reviewResults.length ? (
             <div className="space-y-2">
-              {reviewResults.map((result) => {
-                const isSelected = result.clause_change.id === selectedResult?.clause_change.id;
-                const heading =
-                  result.revised_clause?.heading ?? result.original_clause?.heading ?? "Changed clause";
-
-                return (
-                  <button
-                    key={result.clause_change.id}
-                    type="button"
-                    onClick={() => setSelectedClauseId(result.clause_change.id)}
-                    className={cn(
-                      "w-full rounded-[20px] border px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                      isSelected
-                        ? "border-ring/35 bg-accent/65 shadow-subtle"
-                        : "border-border/70 bg-background/28 hover:border-border hover:bg-muted/48",
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="decision">{result.clause_change.issue_type.replaceAll("_", " ")}</Badge>
-                      <Badge variant={frictionVariant(result.scoring_result?.friction_label)}>
-                        {result.scoring_result?.friction_label ?? "pending"}
-                      </Badge>
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-foreground">{heading}</p>
-                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                      {result.clause_change.semantic_summary}
-                    </p>
-                  </button>
-                );
-              })}
+              <Button
+                onClick={runAnalysis}
+                disabled={!selectedPersonaId || !originalUpload || !revisedUpload || createRunMutation.isPending}
+                className="w-full"
+              >
+                {createRunMutation.isPending ? "Running analysis..." : "Run analysis"}
+              </Button>
+              <Button variant="secondary" onClick={runDemoFlow} disabled={demoRunMutation.isPending} className="w-full">
+                {demoRunMutation.isPending ? "Running demo..." : "Run Demo"}
+              </Button>
             </div>
-          ) : (
-            <EmptyState text="Launch a run to populate the clause review queue." />
-          )}
+
+            {uiError && <StatusBanner tone="error" text={uiError} />}
+            {!uiError && demoBundle?.message && <StatusBanner tone="success" text={demoBundle.message} />}
+          </Section>
+
         </Card>
 
-        <Card className="space-y-5" padding="lg">
-          <SectionHeader
-            eyebrow="Clause Detail"
-            title={
-              selectedResult
-                ? selectedResult.revised_clause?.heading ??
-                  selectedResult.original_clause?.heading ??
-                  "Selected clause"
-                : "Review detail"
-            }
-            description="Inspect the original language, revised language, evidence, and simulated response."
-          />
+        {/* ── Results panel ── */}
+        <div className="grid gap-5 xl:grid-cols-[260px_1fr]">
 
-          {selectedResult ? (
-            <>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="decision">{selectedResult.simulation_result?.decision ?? "pending"}</Badge>
-                <Badge variant="neutral">
-                  {selectedResult.clause_change.issue_type.replaceAll("_", " ")}
-                </Badge>
-                <Badge variant={frictionVariant(selectedResult.scoring_result?.friction_label)}>
-                  {selectedResult.scoring_result?.friction_label ?? "pending"}
-                </Badge>
+          {/* Queue */}
+          <Card padding="lg" className="space-y-3">
+            <p className="text-sm font-semibold text-foreground">Changed clauses</p>
+            {reviewResults.length ? (
+              <div className="space-y-2">
+                {reviewResults.map((result) => {
+                  const isSelected = result.clause_change.id === selectedResult?.clause_change.id;
+                  const heading = result.revised_clause?.heading ?? result.original_clause?.heading ?? "Clause";
+                  return (
+                    <button
+                      key={result.clause_change.id}
+                      type="button"
+                      onClick={() => setSelectedClauseId(result.clause_change.id)}
+                      className={cn(
+                        "w-full rounded-xl border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isSelected
+                          ? "border-ring/30 bg-accent/60"
+                          : "border-border/60 bg-background/20 hover:border-border hover:bg-muted/40",
+                      )}
+                    >
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="decision" className="text-xs">{result.clause_change.issue_type.replaceAll("_", " ")}</Badge>
+                        <Badge variant={frictionVariant(result.scoring_result?.friction_label)} className="text-xs">
+                          {result.scoring_result?.friction_label ?? "pending"}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-sm font-medium text-foreground">{heading}</p>
+                    </button>
+                  );
+                })}
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Run a demo to populate the queue.</p>
+            )}
+          </Card>
 
-              <p className="text-sm leading-7 text-muted-foreground">
-                {selectedResult.clause_change.semantic_summary}
-              </p>
+          {/* Detail */}
+          <Card padding="lg">
+            {selectedResult ? (
+              <div className="space-y-6">
 
-              <div className="grid gap-4 xl:grid-cols-2">
-                <ClausePanel
-                  title="Original clause"
-                  text={selectedResult.original_clause?.text ?? "No original clause"}
-                />
-                <ClausePanel
-                  title="Revised clause"
-                  text={selectedResult.revised_clause?.text ?? "No revised clause"}
-                />
-              </div>
-
-              <div className="grid gap-4 xl:grid-cols-[1.08fr_0.92fr]">
-                <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-                  <PanelTitle icon={BotMessageSquare} title="Opposing counsel response" />
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {/* Status badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="decision">{selectedResult.simulation_result?.decision ?? "pending"}</Badge>
+                  <Badge variant="neutral">{selectedResult.clause_change.issue_type.replaceAll("_", " ")}</Badge>
+                  <Badge variant={frictionVariant(selectedResult.scoring_result?.friction_label)}>
+                    {selectedResult.scoring_result?.friction_label ?? "pending"}
+                  </Badge>
+                  <span className="ml-auto text-xs text-muted-foreground">
                     Confidence {selectedResult.simulation_result?.confidence ?? "–"}
-                  </p>
+                  </span>
+                </div>
+
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {selectedResult.clause_change.semantic_summary}
+                </p>
+
+                {/* Clause text */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ClauseText label="Original" text={selectedResult.original_clause?.text ?? "—"} />
+                  <ClauseText label="Revised"  text={selectedResult.revised_clause?.text  ?? "—"} />
+                </div>
+
+                <div className="border-t border-border/50" />
+
+                {/* Simulation response */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-foreground">Opposing counsel response</p>
                   <p className="text-sm leading-7 text-foreground">
-                    {selectedResult.simulation_result?.business_reason ?? "Awaiting simulation output."}
+                    {selectedResult.simulation_result?.business_reason ?? "—"}
                   </p>
                   <p className="text-sm leading-7 text-muted-foreground">
-                    {selectedResult.simulation_result?.legal_reason ?? "Awaiting rationale."}
+                    {selectedResult.simulation_result?.legal_reason ?? "—"}
                   </p>
-
-                  <Card tone="inset" className="rounded-[18px] p-5">
-                    <p className="text-sm font-semibold text-foreground">Counterproposal</p>
-                    <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                      {selectedResult.simulation_result?.counterproposal_text ?? "No counterproposal yet."}
-                    </p>
-                  </Card>
-
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-foreground">Pushback points</p>
-                    {(selectedResult.simulation_result?.pushback_points ?? []).length ? (
-                      <div className="space-y-2">
-                        {(selectedResult.simulation_result?.pushback_points ?? []).map((point, index) => (
-                          <Card
-                            key={`${selectedResult.clause_change.id}-${index}`}
-                            tone="inset"
-                            padding="sm"
-                            className="rounded-[16px]"
-                          >
-                            <p className="text-sm leading-6 text-muted-foreground">{point}</p>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyState text="No pushback points were generated for this clause." compact />
-                    )}
-                  </div>
-                </Card>
-
-                <div className="space-y-4">
-                  <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-                    <PanelTitle icon={ShieldCheck} title="Scoring" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <StatTile
-                        label="Pushback"
-                        value={String(selectedResult.scoring_result?.pushback_probability ?? "–")}
-                      />
-                      <StatTile
-                        label="Friction"
-                        value={String(selectedResult.scoring_result?.negotiation_friction ?? "–")}
-                      />
-                      <StatTile
-                        label="Delay"
-                        value={String(selectedResult.scoring_result?.delay_risk ?? "–")}
-                      />
-                      <StatTile
-                        label="Severity"
-                        value={String(selectedResult.scoring_result?.severity ?? "–")}
-                      />
-                    </div>
-                    <p className="text-sm leading-7 text-muted-foreground">
-                      {selectedResult.scoring_result?.explanation ?? "Awaiting scoring explanation."}
-                    </p>
-                  </Card>
-
-                  <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-                    <PanelTitle icon={FileStack} title="Evidence citations" />
-                    <div className="space-y-3">
-                      {selectedResult.retrieval_hits.length ? (
-                        selectedResult.retrieval_hits.slice(0, 3).map((hit) => (
-                          <Card key={hit.id} tone="inset" className="rounded-[18px]">
-                            <p className="text-sm font-semibold text-foreground">{hit.evidence_source.title}</p>
-                            <p className="mt-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                              {hit.evidence_source.section_label}
-                            </p>
-                            <p className="mt-3 text-sm leading-7 text-muted-foreground">{hit.snippet_text}</p>
-                          </Card>
-                        ))
-                      ) : (
-                        <EmptyState text="No evidence hits were stored for this clause." compact />
-                      )}
-                    </div>
-                  </Card>
                 </div>
-              </div>
-            </>
-          ) : (
-            <EmptyState text="Select a clause from the review queue to inspect the redline, rationale, evidence, and counterproposal." />
-          )}
-        </Card>
 
-      </section>
+                {/* Counterproposal */}
+                {selectedResult.simulation_result?.counterproposal_text && (
+                  <Card tone="muted" padding="sm" className="space-y-2 rounded-xl">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Counterproposal</p>
+                    <p className="text-sm leading-7">{selectedResult.simulation_result.counterproposal_text}</p>
+                  </Card>
+                )}
+
+                {/* Pushback points */}
+                {(selectedResult.simulation_result?.pushback_points ?? []).length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">Pushback points</p>
+                    {(selectedResult.simulation_result?.pushback_points ?? []).map((point, i) => (
+                      <p key={i} className="pl-3 text-sm leading-7 text-muted-foreground border-l-2 border-border/50">
+                        {point}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                <div className="border-t border-border/50" />
+
+                {/* Scores */}
+                <div className="grid grid-cols-4 gap-2">
+                  <ScoreTile label="Pushback" value={String(selectedResult.scoring_result?.pushback_probability ?? "–")} />
+                  <ScoreTile label="Friction"  value={String(selectedResult.scoring_result?.negotiation_friction  ?? "–")} />
+                  <ScoreTile label="Delay"     value={String(selectedResult.scoring_result?.delay_risk            ?? "–")} />
+                  <ScoreTile label="Severity"  value={String(selectedResult.scoring_result?.severity              ?? "–")} />
+                </div>
+
+                {/* Evidence */}
+                {selectedResult.retrieval_hits.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-foreground">Evidence</p>
+                    {selectedResult.retrieval_hits.slice(0, 3).map((hit) => (
+                      <div key={hit.id} className="border-l-2 border-border/50 pl-3">
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          {hit.evidence_source.title} · {hit.evidence_source.section_label}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{hit.snippet_text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Select a clause to review the redline, rationale, and counterproposal.</p>
+            )}
+          </Card>
+
+        </div>
+      </div>
     </main>
   );
 }
 
-function SectionHeader({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow: string;
-  title: string;
-  description?: string;
-}) {
+// ─── Small helpers ────────────────────────────────────────────────────────────
+
+function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="space-y-2">
-      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-        {eyebrow}
-      </p>
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-foreground">{title}</h2>
-        {description ? <p className="max-w-3xl text-sm leading-7 text-muted-foreground">{description}</p> : null}
-      </div>
+    <div className="space-y-4">
+      <p className="text-sm font-semibold text-foreground">{label}</p>
+      {children}
     </div>
   );
 }
 
-function PanelTitle({
-  icon: Icon,
-  title,
-}: {
-  icon: typeof FileStack;
-  title: string;
-}) {
+function Label({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-background/70 text-foreground">
-        <Icon className="h-4 w-4" />
-      </div>
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-    </div>
-  );
-}
-
-function FieldLabel({
-  children,
-  htmlFor,
-}: {
-  children: ReactNode;
-  htmlFor?: string;
-}) {
-  return (
-    <label htmlFor={htmlFor} className="text-sm font-semibold text-foreground">
+    <label htmlFor={htmlFor} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {children}
     </label>
   );
 }
 
-function QuickStat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card tone="inset" padding="sm" className="rounded-[18px] bg-background/36">
-      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
-    </Card>
-  );
-}
-
-function UploadControl({
-  label,
-  helper,
-  fileName,
-  children,
+function ContractInput({
+  label, badge, file, onFile, text, onText, placeholder,
 }: {
-  label: string;
-  helper: string;
-  fileName: string | null;
-  children: ReactNode;
+  label: string; badge: ReactNode;
+  file: File | null; onFile: (f: File | null) => void;
+  text: string; onText: (t: string) => void;
+  placeholder: string;
 }) {
-  return (
-    <Card tone="inset" padding="sm" className="space-y-3 rounded-[18px] bg-background/42">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {label}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
-        </div>
-        {fileName ? <Badge variant="neutral">{fileName}</Badge> : null}
-      </div>
-      {children}
-    </Card>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  supporting,
-}: {
-  icon: typeof FileStack;
-  label: string;
-  value: string | number;
-  supporting: string;
-}) {
-  return (
-    <Card className="flex min-h-[166px] flex-col justify-between rounded-[24px] p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/80 bg-background/60 text-foreground">
-          <Icon className="h-4 w-4" />
-        </div>
-        <p className="max-w-[160px] text-right text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          {supporting}
-        </p>
-      </div>
-      <div className="mt-7 space-y-2">
-        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          {label}
-        </p>
-        <p className="text-[2rem] font-semibold tracking-tight text-foreground">{value}</p>
-      </div>
-    </Card>
-  );
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <Card tone="inset" padding="sm" className="rounded-[16px]">
-      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
-    </Card>
-  );
-}
-
-function PersonaScale({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        <p className="text-sm font-semibold text-foreground">{value}/5</p>
+      <div className="flex items-center justify-between">
+        <Label>{label}</Label>
+        {badge}
       </div>
-      <div className="grid grid-cols-5 gap-1.5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div
-            key={`${label}-${index}`}
-            className={cn(
-              "h-2.5 rounded-full border transition-colors",
-              index < value
-                ? "border-ring/25 bg-foreground/85"
-                : "border-border/70 bg-background/70",
-            )}
-          />
-        ))}
-      </div>
+      {file && <p className="text-xs text-muted-foreground">{file.name}</p>}
+      <Input type="file" accept=".txt,.docx,.pdf" onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+      <Textarea
+        className="min-h-40 text-xs"
+        value={text}
+        onChange={(e) => onText(e.target.value)}
+        placeholder={placeholder}
+      />
     </div>
   );
 }
 
-function ClausePanel({ title, text }: { title: string; text: string }) {
+function ClauseText({ label, text }: { label: string; text: string }) {
   return (
-    <Card tone="muted" className="rounded-[20px]">
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      <p className="mt-3 text-sm leading-7 text-muted-foreground">{text}</p>
-    </Card>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <Card tone="inset" padding="sm" className="flex items-center justify-between gap-3 rounded-[16px]">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="max-w-[60%] break-all text-right text-sm font-semibold text-foreground">{value}</span>
-    </Card>
-  );
-}
-
-function StatusPanel({ tone, text }: { tone: "error" | "success"; text: string }) {
-  return (
-    <div
-      className={cn(
-        "rounded-[18px] border px-4 py-3 text-sm leading-6",
-        tone === "error" && "border-rose-500/30 bg-rose-500/12 text-rose-100",
-        tone === "success" && "border-emerald-500/30 bg-emerald-500/12 text-emerald-100",
-      )}
-    >
-      {text}
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-sm leading-7 text-foreground">{text}</p>
     </div>
   );
 }
 
-function EmptyState({ text, compact = false }: { text: string; compact?: boolean }) {
+function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card
-      tone="ghost"
-      className={cn(
-        "border-dashed bg-background/20 text-muted-foreground",
-        compact ? "rounded-[18px] p-4 text-sm leading-6" : "rounded-[20px] p-8 text-sm leading-7",
-      )}
-    >
-      {text}
+    <Card padding="sm" className="space-y-1 rounded-xl p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </Card>
+  );
+}
+
+function ScoreTile({ label, value }: { label: string; value: string }) {
+  return (
+    <Card tone="muted" padding="sm" className="space-y-1 rounded-xl">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold text-foreground">{value}</p>
+    </Card>
+  );
+}
+
+function StatusBanner({ tone, text }: { tone: "error" | "success"; text: string }) {
+  return (
+    <div className={cn(
+      "rounded-xl border px-3 py-2 text-sm",
+      tone === "error"   && "border-rose-500/30 bg-rose-500/10 text-rose-200",
+      tone === "success" && "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+    )}>
+      {text}
+    </div>
   );
 }

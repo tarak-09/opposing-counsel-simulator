@@ -92,58 +92,6 @@
   }
 }
 
-@layer components {
-  .app-shell {
-    position: relative;
-    isolation: isolate;
-  }
-
-  .app-shell::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: linear-gradient(to bottom, rgb(255 255 255 / 0.28), transparent 82%);
-    opacity: 0.28;
-  }
-
-  .hero-panel {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      radial-gradient(circle at top left, hsl(var(--primary) / 0.14), transparent 30%),
-      radial-gradient(circle at 78% 0%, hsl(var(--accent) / 0.22), transparent 24%),
-      linear-gradient(140deg, hsl(var(--card)) 0%, hsl(var(--background)) 60%, hsl(var(--muted)) 100%);
-  }
-
-  .hero-panel::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
-    background-size: 48px 48px;
-    opacity: 0.16;
-  }
-
-  .hero-panel > * {
-    position: relative;
-    z-index: 1;
-  }
-}
 
 ::selection {
   background: hsl(var(--primary) / 0.24);
