@@ -104,13 +104,6 @@ export function SimulatorWorkbench() {
     },
   });
 
-  const uiError =
-    (uploadMutation.error as Error | null)?.message ??
-    (createRunMutation.error as Error | null)?.message ??
-    (demoRunMutation.error as Error | null)?.message ??
-    (runStatusQuery.error as Error | null)?.message ??
-    null;
-
   useEffect(() => {
     if (!reviewResults.length) { setSelectedClauseId(null); return; }
     if (!selectedClauseId || !reviewResults.some((r) => r.clause_change.id === selectedClauseId)) {
@@ -204,12 +197,23 @@ export function SimulatorWorkbench() {
               />
             </div>
 
-            <Button
-              onClick={uploadContractsAndEvidence}
-              disabled={((!originalText.trim() && !originalFile) || (!revisedText.trim() && !revisedFile)) || uploadMutation.isPending}
-            >
-              {uploadMutation.isPending ? "Uploading..." : "Upload contracts"}
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={uploadContractsAndEvidence}
+                disabled={((!originalText.trim() && !originalFile) || (!revisedText.trim() && !revisedFile)) || uploadMutation.isPending}
+              >
+                {uploadMutation.isPending ? "Uploading..." : "Upload contracts"}
+              </Button>
+              {originalUpload && revisedUpload && (
+                <p className="text-xs text-emerald-400">Contracts uploaded. Select a persona below and click Run analysis.</p>
+              )}
+              {uploadMutation.isError && (
+                <StatusBanner tone="error" text={(uploadMutation.error as Error)?.message ?? "Upload failed. Is the backend running? Use Run Demo for offline testing."} />
+              )}
+              {!uploadMutation.isError && (
+                <p className="text-xs text-muted-foreground">Requires the backend API. For offline testing use <strong>Run Demo</strong> above.</p>
+              )}
+            </div>
           </Section>
 
           <div className="border-t border-border/50" />
@@ -266,10 +270,14 @@ export function SimulatorWorkbench() {
               <Button variant="secondary" onClick={runDemoFlow} disabled={demoRunMutation.isPending} className="w-full">
                 {demoRunMutation.isPending ? "Running demo..." : "Run Demo"}
               </Button>
+              {!selectedPersonaId && originalUpload && revisedUpload && (
+                <p className="text-xs text-amber-400">Contracts ready — select a persona to run analysis.</p>
+              )}
+              {createRunMutation.isError && (
+                <StatusBanner tone="error" text={(createRunMutation.error as Error)?.message ?? "Analysis failed."} />
+              )}
+              {demoBundle?.message && <StatusBanner tone="success" text={demoBundle.message} />}
             </div>
-
-            {uiError && <StatusBanner tone="error" text={uiError} />}
-            {!uiError && demoBundle?.message && <StatusBanner tone="success" text={demoBundle.message} />}
           </Section>
 
         </Card>
