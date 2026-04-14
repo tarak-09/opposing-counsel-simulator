@@ -4,12 +4,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   BotMessageSquare,
-  BriefcaseBusiness,
   FileStack,
   Gavel,
   Scale,
   ShieldCheck,
-  Workflow,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
@@ -44,14 +42,6 @@ type EvidenceDraft = {
   uploadedVersionId: string | null;
 };
 
-const workflowLabels = [
-  "queued",
-  "diffing",
-  "classification",
-  "retrieval",
-  "simulation",
-  "completed",
-] as const;
 
 export function SimulatorWorkbench() {
   const personasQuery = useQuery({
@@ -166,7 +156,6 @@ export function SimulatorWorkbench() {
   const indexedEvidenceCount = evidenceDrafts.filter((item) => item.uploadedVersionId).length;
   const hasMatterLoaded = Boolean(demoBundle) || Boolean(originalUpload && revisedUpload);
   const currentStage = runStatusData?.run.stage ?? "queued";
-  const currentStageIndex = workflowLabels.indexOf(currentStage as (typeof workflowLabels)[number]);
 
   useEffect(() => {
     if (!reviewResults.length) {
@@ -286,13 +275,6 @@ export function SimulatorWorkbench() {
           </div>
         </div>
 
-        <div className="mt-7 flex flex-wrap gap-2">
-          {workflowLabels.map((label) => (
-            <Badge key={label} className="border-border/70 bg-background/40 text-muted-foreground" variant="neutral">
-              {label.replace("_", " ")}
-            </Badge>
-          ))}
-        </div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -410,9 +392,6 @@ export function SimulatorWorkbench() {
                 }
               >
                 {uploadMutation.isPending ? "Uploading matter..." : "Upload matter set"}
-              </Button>
-              <Button variant="secondary" onClick={runDemoFlow} disabled={demoRunMutation.isPending}>
-                {demoRunMutation.isPending ? "Running demo..." : "Run Demo"}
               </Button>
             </div>
           </div>
@@ -571,7 +550,7 @@ export function SimulatorWorkbench() {
         </Card>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[0.82fr_1.48fr_0.7fr]">
+      <section className="grid gap-5 xl:grid-cols-[0.82fr_1.18fr]">
         <Card className="space-y-4" padding="lg">
           <SectionHeader
             eyebrow="Review Queue"
@@ -750,71 +729,6 @@ export function SimulatorWorkbench() {
           )}
         </Card>
 
-        <Card className="space-y-4" padding="lg">
-          <SectionHeader
-            eyebrow="Dossier"
-            title="Persona and workflow"
-            description="Operational context for the current matter, run, and workflow trace."
-          />
-
-          <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-            <PanelTitle icon={BriefcaseBusiness} title="Matter profile" />
-            <div className="space-y-3">
-              <SummaryRow label="Matter" value={contractName || "Untitled matter"} />
-              <SummaryRow
-                label="Persona"
-                value={selectedPersona?.name ?? demoBundle?.persona.name ?? "Not selected"}
-              />
-              <SummaryRow
-                label="Run id"
-                value={
-                  demoBundle?.runStatus.run.id
-                    ? `${demoBundle.runStatus.run.id.slice(0, 8)}...`
-                    : activeRunId
-                      ? `${activeRunId.slice(0, 8)}...`
-                      : "Not created"
-                }
-              />
-            </div>
-          </Card>
-
-          <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-            <PanelTitle icon={Workflow} title="Workflow trace" />
-            <div className="space-y-2">
-              {workflowLabels.map((label, index) => {
-                const isActive = currentStageIndex >= 0 ? index <= currentStageIndex : label === currentStage;
-                return (
-                  <Card
-                    key={label}
-                    tone="inset"
-                    padding="sm"
-                    className={cn(
-                      "flex items-center justify-between gap-3 rounded-[16px]",
-                      isActive && "border-ring/25 bg-accent/45",
-                    )}
-                  >
-                    <span className="text-sm capitalize text-foreground">{label.replace("_", " ")}</span>
-                    <Badge variant={isActive ? "decision" : "neutral"}>
-                      {isActive ? "tracked" : "idle"}
-                    </Badge>
-                  </Card>
-                );
-              })}
-            </div>
-          </Card>
-
-          <Card tone="muted" className="space-y-4 rounded-[22px] p-5">
-            <PanelTitle icon={Gavel} title="Product posture" />
-            <div className="space-y-2 text-sm leading-7 text-muted-foreground">
-              <p>Clause changes are analyzed individually rather than through one document-level chat prompt.</p>
-              <p>
-                Issue classification is heuristic first, with model fallback available through structured
-                adapters.
-              </p>
-              <p>Evidence hits are persisted so the review UI can show why the simulator took a given stance.</p>
-            </div>
-          </Card>
-        </Card>
       </section>
     </main>
   );
