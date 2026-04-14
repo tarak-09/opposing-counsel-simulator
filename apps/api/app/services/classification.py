@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 
 from app.db.models import ClauseChange, IssueType
 from app.llm.provider import get_reasoning_provider
 from app.schemas.run import IssueClassificationResponse
 from app.utils.prompt_loader import render_prompt_template
+
+
+logger = logging.getLogger(__name__)
 
 
 ISSUE_KEYWORDS: dict[IssueType, tuple[str, ...]] = {
@@ -44,6 +48,10 @@ def classify_clause_change(clause_change: ClauseChange) -> IssueClassificationRe
     best_score = scores.get(best_issue, 0)
     if best_score > 0:
         confidence = min(0.95, 0.35 + (best_score * 0.12))
+        logger.debug(
+            "classify clause=%s path=heuristic issue=%s score=%d confidence=%.2f",
+            clause_change.id, best_issue.value, best_score, confidence,
+        )
         return IssueClassificationResponse(
             issue_type=best_issue.value,
             reasoning=f"Heuristic keyword match favored {best_issue.value.replace('_', ' ')}.",
@@ -53,7 +61,7 @@ def classify_clause_change(clause_change: ClauseChange) -> IssueClassificationRe
     provider = get_reasoning_provider()
     if provider is not None:
         try:
-            return provider.generate_json(
+            result = provider.generate_json(
                 system_prompt="Classify changed contract clauses into a single issue type as strict JSON.",
                 user_prompt=render_prompt_template(
                     "issue_classification.md",
@@ -65,9 +73,18 @@ def classify_clause_change(clause_change: ClauseChange) -> IssueClassificationRe
                 ),
                 response_model=IssueClassificationResponse,
             )
+            logger.debug(
+                "classify clause=%s path=llm issue=%s confidence=%.2f",
+                clause_change.id, result.issue_type, result.confidence,
+            )
+            return result
         except Exception:
-            pass
+            logger.warning(
+                "classify clause=%s path=llm failed; falling back to general",
+                clause_change.id, exc_info=True,
+            )
 
+    logger.debug("classify clause=%s path=fallback issue=general", clause_change.id)
     return IssueClassificationResponse(
         issue_type=IssueType.GENERAL.value,
         reasoning="No strong deterministic signal was present, so the clause was left as general.",

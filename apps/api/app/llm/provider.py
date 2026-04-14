@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
+import time
 from collections import Counter
 
 import httpx
@@ -10,6 +12,9 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 from app.core.config import get_settings
 from app.llm.types import EmbeddingProvider, ModelT, StructuredReasoningProvider
+
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAICompatibleReasoningProvider(StructuredReasoningProvider):
@@ -49,6 +54,7 @@ class OpenAICompatibleReasoningProvider(StructuredReasoningProvider):
                 "schema": response_model.model_json_schema(),
             },
         }
+        t0 = time.monotonic()
         with httpx.Client(timeout=45.0) as client:
             response = client.post(
                 f"{self.settings.llm_base_url.rstrip('/')}/chat/completions",
@@ -68,6 +74,18 @@ class OpenAICompatibleReasoningProvider(StructuredReasoningProvider):
             )
             response.raise_for_status()
             payload = response.json()
+        latency_ms = round((time.monotonic() - t0) * 1000)
+        usage = payload.get("usage", {})
+        logger.info(
+            "llm call model=%s response_model=%s latency_ms=%d "
+            "prompt_tokens=%s completion_tokens=%s total_tokens=%s",
+            self.settings.llm_model,
+            response_model.__name__,
+            latency_ms,
+            usage.get("prompt_tokens", "?"),
+            usage.get("completion_tokens", "?"),
+            usage.get("total_tokens", "?"),
+        )
         content = payload["choices"][0]["message"]["content"]
         if isinstance(content, list):
             text = "".join(part.get("text", "") for part in content if isinstance(part, dict))
@@ -108,14 +126,18 @@ class HashEmbeddingProvider(EmbeddingProvider):
 def get_reasoning_provider() -> StructuredReasoningProvider | None:
     settings = get_settings()
     if settings.llm_api_key and settings.llm_provider == "openai_compatible":
+        logger.debug("reasoning provider=openai_compatible model=%s", settings.llm_model)
         return OpenAICompatibleReasoningProvider()
+    logger.debug("reasoning provider=none; rule-based fallback will be used")
     return None
 
 
 def get_embedding_provider() -> EmbeddingProvider:
     settings = get_settings()
     if settings.embedding_api_key and settings.embedding_provider == "openai_compatible":
+        logger.debug("embedding provider=openai_compatible model=%s", settings.embedding_model)
         return OpenAICompatibleEmbeddingProvider()
+    logger.debug("embedding provider=hash (local fallback)")
     return HashEmbeddingProvider()
 
 

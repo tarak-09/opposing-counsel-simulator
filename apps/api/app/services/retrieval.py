@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Iterable
 from uuid import UUID
 
@@ -19,6 +20,24 @@ from app.utils.text import normalize_whitespace
 
 logger = logging.getLogger(__name__)
 
+# Legal-domain synonym expansion per issue type.
+# Expanding the query before BM25 scoring improves recall for clause text
+# that uses different terminology for the same legal concept.
+_QUERY_EXPANSION: dict[str, list[str]] = {
+    "limitation_of_liability": ["liability cap", "damages ceiling", "consequential loss", "aggregate limit"],
+    "indemnity": ["indemnification", "hold harmless", "defend", "third-party claims"],
+    "confidentiality": ["nda", "non-disclosure", "proprietary information", "trade secret"],
+    "ip_ownership": ["intellectual property", "work product", "assignment", "license grant"],
+    "payment_terms": ["invoice", "net 30", "late fee", "payment schedule", "overdue"],
+    "warranties": ["representation", "as-is", "disclaimer", "fitness for purpose"],
+    "termination": ["termination for cause", "termination for convenience", "notice period", "cure"],
+    "data_protection": ["gdpr", "personal data", "data processing agreement", "privacy"],
+    "security": ["soc 2", "iso 27001", "incident response", "encryption", "breach notification"],
+    "governing_law": ["choice of law", "jurisdiction", "venue", "arbitration"],
+    "service_levels": ["sla", "uptime", "availability", "service credits", "response time"],
+    "audit_rights": ["inspection rights", "audit trail", "record keeping", "compliance review"],
+}
+
 
 @dataclass(slots=True)
 class EvidenceHitCandidate:
@@ -28,6 +47,19 @@ class EvidenceHitCandidate:
     rerank_score: float
     snippet_text: str
     metadata: dict[str, object]
+
+
+@dataclass
+class RetrievalMetrics:
+    """Diagnostic counters logged per retrieve call — useful for offline evaluation."""
+    candidate_count: int = 0
+    returned_count: int = 0
+    vector_available: bool = False
+    lexical_only_count: int = 0        # hits where vector_score == 0
+    avg_rerank_score: float = 0.0
+    top_rerank_score: float = 0.0
+    query_terms: int = 0
+    expanded_terms: int = 0
 
 
 def index_evidence_sources(sources: Iterable[EvidenceSource]) -> None:
@@ -83,20 +115,26 @@ def retrieve_supporting_evidence(
         statement = statement.where(EvidenceSource.document_version_id.in_(evidence_document_version_ids))
     sources = list(session.scalars(statement))
     if not sources:
+        logger.debug("retrieve clause=%s: no evidence sources found", clause_change.id)
         return []
 
-    query = _build_query_text(clause_change)
-    lexical_scores = _lexical_scores(query, sources)
+    settings = get_settings()
+    lexical_weight = settings.retrieval_lexical_weight
+    vector_weight = settings.retrieval_vector_weight
+
+    query, expanded_query = _build_query_text(clause_change)
+    lexical_scores = _lexical_scores(expanded_query, sources)
     vector_scores = _vector_scores(query, sources)
 
     max_lexical = max(lexical_scores.values(), default=1.0) or 1.0
     max_vector = max(vector_scores.values(), default=1.0) or 1.0
+    vector_available = bool(vector_scores)
 
     ranked: list[EvidenceHitCandidate] = []
     for source in sources:
         lexical = lexical_scores.get(source.id, 0.0)
         vector = vector_scores.get(source.id, 0.0)
-        rerank = (0.45 * (lexical / max_lexical)) + (0.55 * (vector / max_vector))
+        rerank = (lexical_weight * (lexical / max_lexical)) + (vector_weight * (vector / max_vector))
         ranked.append(
             EvidenceHitCandidate(
                 evidence_source=source,
@@ -112,28 +150,71 @@ def retrieve_supporting_evidence(
             )
         )
     ranked.sort(key=lambda item: item.rerank_score, reverse=True)
-    return ranked[:top_k]
+    results = ranked[:top_k]
+
+    metrics = RetrievalMetrics(
+        candidate_count=len(sources),
+        returned_count=len(results),
+        vector_available=vector_available,
+        lexical_only_count=sum(1 for h in results if h.vector_score == 0.0),
+        avg_rerank_score=round(sum(h.rerank_score for h in results) / len(results), 4) if results else 0.0,
+        top_rerank_score=results[0].rerank_score if results else 0.0,
+        query_terms=len(_tokenize(query)),
+        expanded_terms=len(_tokenize(expanded_query)),
+    )
+    logger.info(
+        "retrieve clause=%s issue=%s candidates=%d returned=%d vector=%s "
+        "lexical_only=%d top_score=%.4f avg_score=%.4f query_terms=%d expanded_terms=%d",
+        clause_change.id,
+        clause_change.issue_type.value,
+        metrics.candidate_count,
+        metrics.returned_count,
+        metrics.vector_available,
+        metrics.lexical_only_count,
+        metrics.top_rerank_score,
+        metrics.avg_rerank_score,
+        metrics.query_terms,
+        metrics.expanded_terms,
+    )
+    return results
 
 
-def _build_query_text(clause_change: ClauseChange) -> str:
+def _tokenize(text: str) -> list[str]:
+    """Regex tokenizer: lowercase, strip punctuation, drop single-char tokens.
+
+    Compared to `.split()` this handles hyphenated terms like 'non-disclosure'
+    and punctuation attached to words like 'liable.' or '(sla)'.
+    """
+    return [tok for tok in re.findall(r"[a-z][a-z0-9]*", text.lower()) if len(tok) > 1]
+
+
+def _build_query_text(clause_change: ClauseChange) -> tuple[str, str]:
+    """Return (base_query, expanded_query).
+
+    base_query   — used for vector retrieval (dense embeddings already capture semantics).
+    expanded_query — used for BM25 with synonym expansion to improve lexical recall.
+    """
     original_text = clause_change.original_clause.text if clause_change.original_clause else ""
     revised_text = clause_change.revised_clause.text if clause_change.revised_clause else ""
-    return normalize_whitespace(
-        " ".join(
-            [
-                clause_change.issue_type.value.replace("_", " "),
-                clause_change.semantic_summary,
-                original_text,
-                revised_text,
-            ]
-        )
+    base_query = normalize_whitespace(
+        " ".join([
+            clause_change.issue_type.value.replace("_", " "),
+            clause_change.semantic_summary,
+            original_text,
+            revised_text,
+        ])
     )
+    expansions = _QUERY_EXPANSION.get(clause_change.issue_type.value, [])
+    expanded_query = base_query if not expansions else normalize_whitespace(
+        base_query + " " + " ".join(expansions)
+    )
+    return base_query, expanded_query
 
 
 def _lexical_scores(query: str, sources: list[EvidenceSource]) -> dict[object, float]:
-    corpus = [source.full_text.lower().split() for source in sources]
+    corpus = [_tokenize(source.full_text) for source in sources]
     bm25 = BM25Okapi(corpus)
-    scores = bm25.get_scores(query.lower().split())
+    scores = bm25.get_scores(_tokenize(query))
     return {source.id: float(score) for source, score in zip(sources, scores, strict=False)}
 
 

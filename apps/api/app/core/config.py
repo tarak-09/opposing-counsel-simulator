@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     embedding_dimension: int = Field(default=1536)
     use_rule_based_ai_fallback: bool = Field(default=True)
     log_level: str = Field(default="INFO")
+    # Hybrid retrieval weights — must sum to 1.0.
+    # Favour vector slightly: dense embeddings generalise across synonyms better
+    # than BM25 for short clause text, but lexical weight keeps exact legal
+    # term matching (e.g. "GDPR", "SLA", "net 30") from being drowned out.
+    retrieval_lexical_weight: float = Field(default=0.45)
+    retrieval_vector_weight: float = Field(default=0.55)
 
     @property
     def api_root(self) -> Path:

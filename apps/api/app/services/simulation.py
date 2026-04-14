@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from app.db.models import ClauseChange, Persona
@@ -7,6 +8,9 @@ from app.llm.provider import get_reasoning_provider, json_dumps_pretty
 from app.schemas.run import ClauseSimulationOutput
 from app.services.retrieval import EvidenceHitCandidate
 from app.utils.prompt_loader import render_prompt_template
+
+
+logger = logging.getLogger(__name__)
 
 
 ISSUE_SEVERITY = {
@@ -44,7 +48,7 @@ def simulate_clause_response(
                 }
                 for hit in evidence_hits
             ]
-            return provider.generate_json(
+            result = provider.generate_json(
                 system_prompt="You simulate opposing counsel clause-by-clause. Respond with strict JSON only.",
                 user_prompt=render_prompt_template(
                     "clause_simulation.md",
@@ -73,8 +77,16 @@ def simulate_clause_response(
                 ),
                 response_model=ClauseSimulationOutput,
             )
+            logger.debug(
+                "simulate clause=%s path=llm decision=%s confidence=%.2f",
+                clause_change.id, result.decision, result.confidence,
+            )
+            return result
         except Exception:
-            pass
+            logger.warning(
+                "simulate clause=%s path=llm failed; using rule-based fallback",
+                clause_change.id, exc_info=True,
+            )
 
     issue_key = clause_change.issue_type.value
     position = persona.issue_positions.get(issue_key, {})
@@ -91,6 +103,10 @@ def simulate_clause_response(
     elif severity >= 3:
         decision = "push_back"
 
+    logger.debug(
+        "simulate clause=%s path=rule-based issue=%s severity=%d decision=%s adverse=%s",
+        clause_change.id, issue_key, severity, decision, adverse,
+    )
     stance_strength = min(5, max(1, round((severity + persona.leverage + persona.liability_strictness) / 3)))
     evidence_summary = _best_evidence_text(evidence_hits)
     counterproposal_text = _counterproposal_text(position, issue_key, evidence_hits, clause_change)
