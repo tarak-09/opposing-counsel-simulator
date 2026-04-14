@@ -1,0 +1,15 @@
+FALLBACK CLAUSES
+
+APPROVED FALLBACK CLAUSES
+
+1. Liability Fallback. Except for fraud, willful misconduct, and each party's indemnity obligations for third-party intellectual property claims, each party's aggregate liability under this Agreement will not exceed the fees paid or payable in the 12 months preceding the event giving rise to the claim. A limited carve-out for confidentiality and data protection obligations may apply, but any such carve-out should be subject to a separate super-cap.
+
+2. Mutual Indemnity Fallback. Each party will defend the other party against third-party claims alleging that such party's technology, content, or data violates applicable law or infringes a third party's intellectual property rights, and each party will pay damages finally awarded or agreed in settlement. Indemnity obligations should remain tied to third-party claims and proportionate to the risk controlled by the indemnifying party.
+
+3. Payment Fallback. Customer will pay undisputed invoices within thirty (30) days after receipt. Customer may withhold only the specifically disputed portion of an invoice, and the parties will work in good faith to resolve the dispute promptly.
+
+4. Termination Fallback. Either party may terminate for material breach if the breach remains uncured for thirty (30) days after written notice. Customer termination for convenience during the initial subscription term requires at least sixty (60) days' notice and payment of all committed fees through the effective termination date.
+
+5. Confidentiality Fallback. Each party may use de-identified service data for internal analytics and product improvement, provided such use does not identify the other party or circumvent confidentiality obligations.
+
+3. Balanced Payment Terms. Customer will pay undisputed invoices within thirty days after receipt. Overdue amounts may accrue interest at the lesser of one percent per month or the maximum amount permitted by law.

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opposing-counsel-simulator-api"
+version = "0.1.0"
+description = "FastAPI backend for the Opposing Counsel Simulator MVP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "alembic>=1.14.0",
+  "celery>=5.4.0",
+  "fastapi>=0.116.0",
+  "httpx>=0.28.1",
+  "psycopg[binary]>=3.2.3",
+  "pydantic>=2.10.0",
+  "pydantic-settings>=2.7.1",
+  "pymupdf>=1.26.0",
+  "python-dotenv>=1.0.1",
+  "python-docx>=1.1.2",
+  "python-multipart>=0.0.20",
+  "qdrant-client>=1.13.3",
+  "rank-bm25>=0.2.2",
+  "redis>=5.2.1",
+  "sqlalchemy>=2.0.36",
+  "tenacity>=9.0.0",
+  "uvicorn[standard]>=0.34.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.4",
+  "pytest-cov>=6.0.0",
+  "ruff>=0.9.0"
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "aggressive-procurement",
+    "name": "Aggressive Procurement",
+    "description": "A buyer-side procurement team that pushes for maximum leverage, stronger customer protections, and broad remedies before signing.",
+    "risk_tolerance": 2,
+    "leverage": 5,
+    "speed_priority": 2,
+    "privacy_sensitivity": 5,
+    "liability_strictness": 5,
+    "fallback_flexibility": 2,
+    "tone": "firm and exacting",
+    "issue_positions": {
+      "limitation_of_liability": {
+        "non_negotiable": true,
+        "fallback_clause": "Supplier liability should be uncapped for confidentiality breaches, data incidents, IP infringement, and willful misconduct, with a general cap no lower than three times fees paid or payable in the prior twelve months."
+      },
+      "data_protection": {
+        "non_negotiable": true,
+        "fallback_clause": "Supplier will implement industry-standard administrative, technical, and physical safeguards, notify Customer without undue delay of any security incident, and cooperate fully in remediation."
+      },
+      "payment_terms": {
+        "non_negotiable": false,
+        "fallback_clause": "Payment will be due net 45 from receipt of an undisputed invoice."
+      }
+    }
+  },
+  {
+    "slug": "big-tech-legal",
+    "name": "Big Tech Legal",
+    "description": "A scaled in-house legal team balancing policy discipline, precedent consistency, and cross-functional review requirements.",
+    "risk_tolerance": 3,
+    "leverage": 4,
+    "speed_priority": 3,
+    "privacy_sensitivity": 5,
+    "liability_strictness": 5,
+    "fallback_flexibility": 3,
+    "tone": "measured and policy-driven",
+    "issue_positions": {
+      "limitation_of_liability": {
+        "non_negotiable": true,
+        "fallback_clause": "Aggregate liability remains capped at fees paid or payable in the preceding twelve months, except for fraud, willful misconduct, infringement indemnity, and breaches of confidentiality or data protection obligations."
+      },
+      "security": {
+        "non_negotiable": true,
+        "fallback_clause": "Vendor will maintain a written security program aligned to recognized industry standards and provide notice of material incidents without unreasonable delay."
+      },
+      "ip_ownership": {
+        "non_negotiable": true,
+        "fallback_clause": "Each party retains ownership of its pre-existing intellectual property. Deliverables created specifically for Customer will be assigned upon payment, excluding vendor tools and know-how."
+      }
+    }
+  },
+  {
+    "slug": "startup-counsel",
+    "name": "Startup Counsel",
+    "description": "Vendor-side counsel for a fast-moving startup that prioritizes closing the deal quickly while protecting balance-sheet, indemnity, and operational risk.",
+    "risk_tolerance": 4,
+    "leverage": 2,
+    "speed_priority": 5,
+    "privacy_sensitivity": 4,
+    "liability_strictness": 4,
+    "fallback_flexibility": 5,
+    "tone": "pragmatic and commercially focused",
+    "issue_positions": {
+      "limitation_of_liability": {
+        "non_negotiable": true,
+        "fallback_clause": "Vendor liability should remain within a 12-month fee cap, with any confidentiality or data protection carve-out subject to a narrow super-cap."
+      },
+      "termination": {
+        "non_negotiable": false,
+        "fallback_clause": "Either party may terminate for material breach after a thirty-day cure period, but customer convenience termination during the initial term requires notice and payment of committed fees."
+      },
+      "payment_terms": {
+        "non_negotiable": false,
+        "fallback_clause": "Invoices are due net 30, disputed amounts are carved out specifically, and suspension applies only to undisputed overdue amounts after notice."
+      }
+    }
+  }
+]

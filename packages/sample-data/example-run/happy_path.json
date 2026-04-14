@@ -1,0 +1,23 @@
+{
+  "message": "Demo matter loaded and analysis completed locally.",
+  "task_mode": "sync",
+  "persona": {
+    "id": "f0ae22e4-58d8-4d54-95e0-6d03fd0ed912",
+    "name": "Startup Counsel",
+    "slug": "startup-counsel"
+  },
+  "original_document_version_id": "7a7f67e6-dcc0-4937-8cac-3f117f0ce675",
+  "revised_document_version_id": "119f2f50-e8e1-4d4c-88e3-e4a9ebc4f2c7",
+  "evidence_document_version_ids": [
+    "dc37614b-1fd0-44eb-8c0c-58df88865db3",
+    "df7fe66d-ac77-410f-b2e8-c4f3244ddf57",
+    "25daa6ac-0b3e-4b63-ba81-a3a335404a58"
+  ],
+  "run_id": "4af6ee07-ed2b-4cff-8665-7ff876143c71",
+  "overview": {
+    "total_changed_clauses": 5,
+    "likely_pushback_count": 5,
+    "high_friction_clauses": 2,
+    "overall_negotiation_difficulty": 0.74
+  }
+}

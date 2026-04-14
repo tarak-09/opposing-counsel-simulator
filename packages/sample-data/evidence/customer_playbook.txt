@@ -1,0 +1,17 @@
+CUSTOMER NEGOTIATION PLAYBOOK
+
+NEGOTIATION PLAYBOOK
+
+1. Liability. Standard liability is 6-12 months of fees. Enterprise customers often ask for 24 months or uncapped indemnity, but vendor fallback should be 12 months of fees with narrow carve-outs for fraud, willful misconduct, and a limited confidentiality/data protection exception.
+
+2. Indemnity. Indemnity should be mutual for SaaS contracts. Vendor should resist uncapped indemnity for data incidents or open-ended coverage for investigations, bodily injury, or property damage unless those obligations are tied to clear operational risk and supported by insurance.
+
+3. Payment Terms. Net 30 for undisputed invoices is standard. Net 45 may be acceptable only for strategic accounts and should not include an open-ended right to withhold payment or delay service suspension indefinitely.
+
+4. Termination. Avoid customer termination for convenience during the committed subscription term unless stranded implementation costs are recovered. Maintain at least a 30-day cure period for material breach.
+
+5. Confidentiality. Permit use of de-identified service data for analytics. Do not accept blanket bans on internal service improvement or injunctive relief language that expands remedies beyond standard equitable relief principles.
+
+3. Payment Terms. Standard payment timing is net 45 for enterprise customers. Reject accelerated invoicing terms absent a clear commercial concession.
+
+4. Termination. A cure period shorter than thirty days should be treated as unfavorable unless the commercial context justifies faster remediation.

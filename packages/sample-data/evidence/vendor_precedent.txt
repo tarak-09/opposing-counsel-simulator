@@ -1,0 +1,15 @@
+VENDOR PRECEDENT CLAUSES
+
+VENDOR PRECEDENT NOTES
+
+1. Liability Benchmark. Vendor-friendly SaaS paper commonly caps liability at fees paid in the prior 12 months, with 6-12 months of fees as the usual negotiation band for middle-market deals.
+
+2. Indemnity Benchmark. Indemnity should be mutual for SaaS contracts where each party controls its own intellectual property, data handling, and personnel. Third-party claims remain the standard trigger.
+
+3. Payment Benchmark. Net 30 from receipt of invoice remains the most common standard. Suspension rights typically require written notice and only apply to undisputed overdue amounts.
+
+4. Termination Benchmark. Customer termination for convenience is uncommon in annual subscription deals unless paired with a termination fee, notice buffer, or limited post-go-live window.
+
+5. Confidentiality Benchmark. Confidentiality obligations usually survive three to five years, and analytics use is generally acceptable if the data is aggregated and de-identified.
+
+3. Suspension. Vendor may suspend access to the Services for undisputed nonpayment after providing at least ten days' prior written notice.

@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 220 18% 10%;
+  --foreground: 210 20% 95%;
+  --card: 220 17% 14%;
+  --card-foreground: 210 20% 95%;
+  --popover: 220 17% 14%;
+  --popover-foreground: 210 20% 95%;
+  --primary: 210 26% 93%;
+  --primary-foreground: 222 20% 12%;
+  --secondary: 220 13% 21%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 220 15% 17%;
+  --muted-foreground: 214 17% 77%;
+  --accent: 218 19% 22%;
+  --accent-foreground: 210 20% 96%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 217 13% 27%;
+  --input: 217 14% 22%;
+  --ring: 210 90% 72%;
+  --radius: 1rem;
+}
+
+.light {
+  --background: 210 30% 98%;
+  --foreground: 222 30% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 30% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 30% 12%;
+  --primary: 222 40% 12%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 20% 94%;
+  --secondary-foreground: 222 30% 12%;
+  --muted: 210 24% 93%;
+  --muted-foreground: 215 16% 38%;
+  --accent: 210 20% 94%;
+  --accent-foreground: 222 30% 12%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 18% 84%;
+  --input: 214 18% 86%;
+  --ring: 221 82% 52%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      "SF Pro Display",
+      "SF Pro Text",
+      "Avenir Next",
+      "Segoe UI",
+      sans-serif;
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.08), transparent 32%),
+      radial-gradient(circle at 82% 0%, hsl(var(--accent) / 0.24), transparent 22%),
+      radial-gradient(circle at 82% 100%, hsl(var(--primary) / 0.06), transparent 28%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold tracking-tight text-foreground;
+  }
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .app-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, rgb(255 255 255 / 0.28), transparent 82%);
+    opacity: 0.28;
+  }
+
+  .hero-panel {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.14), transparent 30%),
+      radial-gradient(circle at 78% 0%, hsl(var(--accent) / 0.22), transparent 24%),
+      linear-gradient(140deg, hsl(var(--card)) 0%, hsl(var(--background)) 60%, hsl(var(--muted)) 100%);
+  }
+
+  .hero-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.16;
+  }
+
+  .hero-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.24);
+  color: hsl(var(--primary-foreground));
+}

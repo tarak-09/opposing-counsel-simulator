@@ -1,0 +1,15 @@
+{
+  "name": "opposing-counsel-simulator",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/schemas"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @ocs/web",
+    "web:dev": "npm run dev --workspace @ocs/web",
+    "web:build": "npm run build --workspace @ocs/web",
+    "web:lint": "npm run lint --workspace @ocs/web",
+    "schemas:build": "npm run build --workspace @ocs/schemas"
+  }
+}
